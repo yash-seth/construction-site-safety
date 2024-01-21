@@ -1,0 +1,11 @@
+.NavbarMain {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    background-color: antiquewhite;
+}
+
+#navbar-controls-btn {
+    margin: 10px;
+}

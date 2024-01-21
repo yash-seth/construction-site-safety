@@ -1,0 +1,17 @@
+.admin-main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.admin-query-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+#admin-query-btn, #admin-query-label, #admin-query-input{
+    margin: 5px
+}
