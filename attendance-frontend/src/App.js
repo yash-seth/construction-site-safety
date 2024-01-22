@@ -5,7 +5,7 @@ import Admin from './Components/Admin/Admin';
 import Worker from './Components/Worker/Worker';
 
 function App() {
-  const [viewState, setViewState] = useState('admin')
+  const [viewState, setViewState] = useState('worker')
   return (
     <div>
       <Navbar setViewState={setViewState}/>
