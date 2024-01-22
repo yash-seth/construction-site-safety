@@ -4,7 +4,6 @@ import "./Worker.css"
 
 function Worker() {
   const [file, setFile] = useState()
-  // const [status, setStatus] = useState(false)
   const handleUpload = () => {
       if(!file) {
         alert("Image was not uploaded!")
@@ -25,7 +24,6 @@ function Worker() {
         .then((res) =>
             res.json().then((data) => {
                 console.log(data)
-                // setStatus(data.status)
                 if(data.status === 'True') alert('Helmet detected!')
                 else if(data.status === 'False') alert('Helmet not detected!')
             })
@@ -33,11 +31,22 @@ function Worker() {
         .catch((err) => console.log(err));
   }
   
+  const handleImageSelect = (e) => {
+    setFile(e.target.files[0])
+
+    if (e.target.files[0]) {
+      let imgURL = URL.createObjectURL(e.target.files[0]);
+      document.getElementById("img-preview").src = imgURL
+      document.getElementById("img-preview").setAttribute("style", "display:block;")
+    }
+  }
+
   return (
     <div className='worker-main'>
       <h1>Worker View</h1>
       <label>Image: </label>
-      <input type='file' onChange={ (e) => { setFile(e.target.files[0]) } }/>
+      <img id="img-preview" alt='preview'></img>
+      <input type='file' onChange={ (e) => { handleImageSelect(e) } }/>
       <button onClick={ handleUpload }>Upload</button>
     </div>
   )
