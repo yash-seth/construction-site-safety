@@ -1,14 +1,15 @@
 import Webcam from "react-webcam";
-import React, { useState, useRef, useCallback } from "react";
+import React, { useRef, useCallback } from "react";
 import "./WebcamImage.css"
 
-function WebcamImage({ setWebcamView }) {
+// get workers name for the file name
+
+function WebcamImage({ setWebcamView, img, setImg }) {
   const webcamRef = useRef(null);
-  const [img, setImg] = useState(null);
 
     const capture = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot();
-        console.log(imageSrc)
+        // console.log(imageSrc)
         setImg(imageSrc);
     }, [webcamRef]);
 
@@ -39,7 +40,7 @@ function WebcamImage({ setWebcamView }) {
           <button onClick={() => setImg(null)}>Recapture</button>
         </>
       )}
-      <button onClick={() => setWebcamView('closed')}>Close</button>
+      <button onClick={() => {setWebcamView('closed'); setImg(null)}}>Close</button>
     </div>
   );
 }
