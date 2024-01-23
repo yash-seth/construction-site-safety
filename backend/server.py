@@ -11,6 +11,7 @@ from PIL import Image
 from ultralytics import YOLO
 import pandas as pd
 from datetime import datetime
+import base64, binascii
 
 # set up env for LLM Chain
 llm = GooglePalm(google_api_key="AIzaSyCm-45dqF12sh65lga0ERhSTWYXneFSt8k", temperature = 0.7)
@@ -69,7 +70,26 @@ def queryLogs():
 @app.route('/upload', methods=['GET', 'POST', 'OPTIONS'])
 @cross_origin(origin='*')
 def upload():
-    file = request.files['file']
+
+    image_source = request.form['source']
+
+    if image_source == 'upload':
+        try:
+            file = request.files['file']
+        except:
+            return {
+                'status': 'Error'
+            }
+
+    elif image_source == 'capture':
+        try:
+            file = request.form['file']
+            # print('Inside capture:', file)
+        except:
+            return {
+                'status': 'Error'
+            }
+
     model = YOLO('./yolov8_helmet_model.pt')
     df = pd.DataFrame(columns=['Timestamp', 'Name', 'Status'])
 
@@ -81,9 +101,33 @@ def upload():
     now = datetime.now()
     dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
     
-    file.save("./Uploads/" + filename)
+    # save file to pass to model
+    try:
+        if image_source == 'upload':
+            file.save("./Uploads/" + filename)
+        elif image_source == 'capture':
+            print('I was here')
+            try:
+                # print('File: ', file.split(',')[1])
+                base64_string = file.split(',')[1]
+                image = base64.b64decode(base64_string, validate=True)
+                file_to_save = "./Uploads/" + filename
+                with open(file_to_save, "wb") as f:
+                    f.write(image)
+            except binascii.Error as e:
+                print(e)
+    except:
+        return {
+                'status': 'Error'
+            }
+
+    # will track if helmet was found
     flag = False
+
+    # loading file to model
     results = model("./Uploads/" + filename)
+
+    # going over identified objects and their confidence values in the image
     for r in results:
         objMap = zip(r.boxes.cls, r.boxes.conf)
         for obj in objMap:
@@ -94,10 +138,13 @@ def upload():
                 break
             else:
                 continue
+
+    # if no helmet was found with 80% or more confidence        
     if not flag:
         df.loc[len(df.index)] = [dt_string, worker_name, 'does not have helmet']
         print('does not have helmet')
 
+    # append entry to worker log
     df.to_csv(r'./worker_log.csv', index=False, mode='a', header=False)
 
     return {
