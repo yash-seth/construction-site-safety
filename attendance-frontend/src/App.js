@@ -6,11 +6,12 @@ import Worker from './Components/Worker/Worker';
 
 function App() {
   const [viewState, setViewState] = useState('worker')
+  const [webcamView, setWebcamView] = useState('closed')
   return (
     <div>
       <Navbar setViewState={setViewState}/>
       {viewState === 'admin' && <Admin />}
-        {viewState === 'worker' && <Worker />}
+        {viewState === 'worker' && <Worker webcamView={webcamView} setWebcamView={setWebcamView}/>}
     </div>
   );
 }

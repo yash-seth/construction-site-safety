@@ -1,9 +1,11 @@
 import React from 'react'
+import WebcamImage from '../WebcamImage/WebcamImage'
 import { useState } from 'react'
 import "./Worker.css"
 
-function Worker() {
+function Worker({ webcamView, setWebcamView }) {
   const [file, setFile] = useState()
+  
   const handleUpload = () => {
       if(!file) {
         alert("Image was not uploaded!")
@@ -44,9 +46,15 @@ function Worker() {
   return (
     <div className='worker-main'>
       <h1>Worker View</h1>
+      {webcamView === 'open' && 
+      <>
+        <WebcamImage setWebcamView={setWebcamView} />
+      </>
+      }
       <label>Image: </label>
       <img id="img-preview" alt='preview'></img>
       <input type='file' onChange={ (e) => { handleImageSelect(e) } }/>
+      {webcamView === 'closed' && <button onClick={() => {setWebcamView('open')}}>Capture Image</button>}
       <button onClick={ handleUpload }>Upload</button>
     </div>
   )
