@@ -15,3 +15,10 @@
 #admin-query-btn, #admin-query-label, #admin-query-input{
     margin: 5px
 }
+
+.admin-query-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
