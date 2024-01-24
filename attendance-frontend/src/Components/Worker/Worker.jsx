@@ -73,15 +73,17 @@ function Worker({ webcamView, setWebcamView }) {
       <label>Image: </label>
       <img id="img-preview" alt='preview'></img>
       <input type='file' onChange={ (e) => { handleImageSelect(e) } } onClick={() => setWebcamView('closed')}/>
-      {webcamView === 'closed' && 
-        <button onClick={() => {
-          setFile(null);
-          document.getElementById("img-preview").setAttribute("style", "display:none;");
-          setWebcamView('open')
-          }}>
-            Capture Image
-        </button>}
-      {resultLoading ? <CircularProgress /> : <button onClick={ handleUpload }>Upload</button>}
+      <div className='image-controls'>
+        {webcamView === 'closed' && 
+          <button className="image-control-btn" onClick={() => {
+            setFile(null);
+            document.getElementById("img-preview").setAttribute("style", "display:none;");
+            setWebcamView('open')
+            }}>
+              Capture Image
+          </button>}
+        {resultLoading ? <CircularProgress /> : <button className="image-control-btn" onClick={ handleUpload }>Upload</button>}
+      </div>
     </div>
   )
 }

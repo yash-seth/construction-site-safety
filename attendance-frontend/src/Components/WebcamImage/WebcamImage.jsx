@@ -38,15 +38,15 @@ function WebcamImage({ setWebcamView, img, setImg, workerName, setWorkerName }) 
             ref={webcamRef}
             mirrored={true}
           />
-          <button onClick={capture}>Capture photo</button>
+          <button className="image-control-btn" onClick={capture}>Capture photo</button>
         </>
       ) : (
         <>
           <img src={img} alt="screenshot" />
-          <button onClick={() => setImg(null)}>Recapture</button>
+          <button className="image-control-btn" onClick={() => setImg(null)}>Recapture</button>
         </>
       )}
-      <button onClick={() => {setWebcamView('closed'); setImg(null)}}>Close</button>
+      <button className="image-control-btn" onClick={() => {setWebcamView('closed'); setImg(null)}}>Close</button>
     </div>
   );
 }

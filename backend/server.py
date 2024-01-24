@@ -7,7 +7,6 @@ from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
-from PIL import Image 
 from ultralytics import YOLO
 import pandas as pd
 from datetime import datetime
@@ -39,11 +38,11 @@ PROMPT = PromptTemplate(
 
 
 chain = RetrievalQA.from_chain_type(llm=llm,
-                                        chain_type="stuff",
-                                        retriever=retriever,
-                                        input_key="query",
-                                        return_source_documents=True,
-                                        chain_type_kwargs={"prompt": PROMPT})
+                                    chain_type="stuff",
+                                    retriever=retriever,
+                                    input_key="query",
+                                    return_source_documents=True,
+                                    chain_type_kwargs={"prompt": PROMPT})
 
 
 # set up flask app with CORS to allow sending and receiving data
@@ -154,9 +153,6 @@ def upload():
 @app.route('/dummy_endpoint', methods=['GET', 'POST', 'OPTIONS'])
 @cross_origin(origin='*')
 def dummy_endpoint():
-    file = request.files['file']
-    # file.save("./Uploads/abc.png")
-    # Image.open(request.files['file'])
     return {
         'Name':"geek", 
         "Age":"22", 

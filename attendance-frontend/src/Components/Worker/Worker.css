@@ -8,3 +8,14 @@
 #img-preview {
     display: none;
 }
+
+.image-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: space;
+    align-items: center;
+}
+
+.image-control-btn {
+    margin: 5px;
+}
