@@ -11,6 +11,7 @@ from ultralytics import YOLO
 import pandas as pd
 from datetime import datetime
 import base64, binascii
+from langchain.document_loaders.csv_loader import CSVLoader
 
 # set up env for LLM Chain
 llm = GooglePalm(google_api_key="AIzaSyCm-45dqF12sh65lga0ERhSTWYXneFSt8k", temperature = 0.7)
@@ -24,8 +25,8 @@ vectorDB = FAISS.load_local(r"D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\fais
 retriever = vectorDB.as_retriever()
 
 # prompt for the LLM queries and response - to prevent hallucinations
-prompt_template = """Given the following context and a question, generate an answer based on this context only.
-    In the answer try to provide as much text as possible from "status" section in the source document context without making much changes.
+prompt_template = """"Given the following context and a question, generate an answer based on this context only.
+    In the answer try to provide as much text as possible from "status" and "timestamp" section in the source document context without making much changes.
     If the answer is not found in the context, kindly state "I don't know." Don't try to make up an answer.
 
     CONTEXT: {context}
@@ -56,9 +57,30 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 def hello():
    return "Hello World!"
 
+@app.route('/syncLogs', methods=['GET', 'OPTIONS'])
+@cross_origin(origin='*')
+def syncLogs():
+    print("Syncing....")
+    loader = CSVLoader(file_path="./worker_log.csv", source_column="Name")
+    logs = loader.load()    
+    vectorDB = FAISS.from_documents(documents=logs, embedding=embeddings)
+    vectorDB.save_local(r"D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\faiss_index")
+    return {
+                'status': 'Sync Successful'
+            }
+   
+
 @app.route('/query', methods=['POST', 'OPTIONS'])
 @cross_origin()
 def queryLogs():
+    vectorDB = FAISS.load_local(r"D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\faiss_index", embeddings)
+    retriever = vectorDB.as_retriever()
+    chain = RetrievalQA.from_chain_type(llm=llm,
+                                    chain_type="stuff",
+                                    retriever=retriever,
+                                    input_key="query",
+                                    return_source_documents=True,
+                                    chain_type_kwargs={"prompt": PROMPT})
     res = ''
     res = chain(request.json['query'])
     return {

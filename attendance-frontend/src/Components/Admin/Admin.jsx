@@ -35,9 +35,18 @@ function Admin() {
 
     const syncLogs = () => {
         setSyncLoading(true)
-        setTimeout(() => {
-            setSyncLoading(false)
-        }, 5000);
+        fetch("http://127.0.0.1:5000/syncLogs", {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }})
+        .then((res) =>
+            res.json().then((data) => {
+                alert(data.status)
+                setSyncLoading(false)
+            })
+        );
     }
 
   return (
@@ -51,11 +60,11 @@ function Admin() {
             <button id="admin-query-btn" onClick={() => queryLLM()}>Query</button>
             {syncLoading === false
             ? 
-            <button id="admin-query-btn" onClick={() => syncLogs()}>Sync</button>
+            <button id="admin-query-btn" onClick={() => {syncLogs();setQuery('');setAnswer({response: ''})}}>Sync</button>
             :
             <label><CircularProgress /></label>
             }
-            <button id="admin-query-btn" onClick={() => setQuery('')}>Reset</button>
+            <button id="admin-query-btn" onClick={() => {setQuery('');setAnswer({response: ''})}}>Reset</button>
         </div>
         <h3><label>{answer.response}</label></h3>
     </div>
