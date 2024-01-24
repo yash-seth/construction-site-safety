@@ -4,7 +4,7 @@ import "./WebcamImage.css"
 
 // get workers name for the file name
 
-function WebcamImage({ setWebcamView, img, setImg }) {
+function WebcamImage({ setWebcamView, img, setImg, workerName, setWorkerName }) {
   const webcamRef = useRef(null);
 
     const capture = useCallback(() => {
@@ -18,9 +18,15 @@ function WebcamImage({ setWebcamView, img, setImg }) {
         height: 390,
         facingMode: "user",
     };
+    
+    const handleWokerNameChange = (e) => {
+      setWorkerName(e.target.value)
+    }
 
   return (
-    <div className="Container">
+    <div className="WebcamImage-main">
+      <label for='worker-name'>Enter Name: </label>
+      <input onChange={ (e) => handleWokerNameChange(e) } value={workerName} id='wokrer-name' name='worker-name' type="text" />
       {img === null ? (
         <>
           <Webcam

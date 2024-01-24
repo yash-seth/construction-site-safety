@@ -7,10 +7,16 @@ import "./Worker.css"
 function Worker({ webcamView, setWebcamView }) {
   const [file, setFile] = useState(null)
   const [resultLoading, setResultLoading] = useState(false)
+  const [workerName, setWorkerName] = useState('')
   
   const handleUpload = () => {
       if(!file) {
         alert("Image was not uploaded!")
+        return
+      }
+
+      if( webcamView === 'open' && workerName === '') {
+        alert('Worker Name is not entered!')
         return
       }
       
@@ -18,7 +24,7 @@ function Worker({ webcamView, setWebcamView }) {
 
       const fd = new FormData()
       fd.append('file', file)
-      fd.append('filename', webcamView === 'open' ? 'yash_seth.jpg' : fd.get('file').name)
+      fd.append('filename', webcamView === 'open' ? workerName.split(' ')[0] + '_' + workerName.split(' ')[1] + '.jpg' : fd.get('file').name)
       fd.append('source', webcamView === 'open' ? 'capture' : 'upload')
       console.log(fd.get('file'))
 
@@ -40,6 +46,7 @@ function Worker({ webcamView, setWebcamView }) {
                 document.getElementById("img-preview").src = null
                 document.getElementById("img-preview").setAttribute("style", "display:none;")
                 setResultLoading(false)
+                setWorkerName('')
             })
         )
         .catch((err) => console.log(err));
@@ -60,7 +67,7 @@ function Worker({ webcamView, setWebcamView }) {
       <h1>Worker View</h1>
       {webcamView === 'open' && 
       <>
-        <WebcamImage setWebcamView={setWebcamView} img={file} setImg={setFile}/>
+        <WebcamImage setWebcamView={setWebcamView} img={file} setImg={setFile} workerName={workerName} setWorkerName={setWorkerName}/>
       </>
       }
       <label>Image: </label>

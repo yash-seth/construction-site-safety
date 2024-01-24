@@ -84,7 +84,6 @@ def upload():
     elif image_source == 'capture':
         try:
             file = request.form['file']
-            # print('Inside capture:', file)
         except:
             return {
                 'status': 'Error'
