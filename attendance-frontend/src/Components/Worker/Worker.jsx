@@ -37,8 +37,11 @@ function Worker({ webcamView, setWebcamView }) {
         .then((res) =>
             res.json().then((data) => {
                 console.log(data)
-                if(data.status === 'True') alert('Helmet detected!')
-                else if(data.status === 'False') alert('Helmet not detected!')
+                // if(data.status === 'True') alert('Helmet detected!')
+                // else if(data.status === 'False') alert('Helmet not detected!')
+                if(data.status === 'complete') {
+                  alert(`Helmet status: ${data['helmet_status'] ? 'Present' : 'Absent'} \nPPE status: ${data['ppe_status'] ? 'Present' : 'Absent'}`)
+                }
                 else if(data.status === 'Error') {
                   alert('Please try again. There was an error!')
                 }
