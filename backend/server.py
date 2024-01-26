@@ -26,7 +26,7 @@ retriever = vectorDB.as_retriever()
 
 # prompt for the LLM queries and response - to prevent hallucinations
 prompt_template = """"Given the following context and a question, generate an answer based on this context only.
-    In the answer try to provide as much text as possible from "status" and "timestamp" section in the source document context without making much changes.
+    In the answer try to provide as much text as possible from "Helmet-Status", "Timestamp" and "PPE-Status" section in the source document context without making much changes.
     If the answer is not found in the context, kindly state "I don't know." Don't try to make up an answer.
 
     CONTEXT: {context}
@@ -111,7 +111,7 @@ def upload():
             }
 
     model = YOLO('./yolov8_helmet_model.pt')
-    df = pd.DataFrame(columns=['Timestamp', 'Name', 'Status'])
+    df = pd.DataFrame(columns=['Timestamp', 'Name', 'Helmet-Status', 'PPE-Status'])
 
     filename = request.form['filename']
     fname = filename.split('.')[0].split('_')[0]
@@ -126,9 +126,7 @@ def upload():
         if image_source == 'upload':
             file.save("./Uploads/" + filename)
         elif image_source == 'capture':
-            print('I was here')
             try:
-                # print('File: ', file.split(',')[1])
                 base64_string = file.split(',')[1]
                 image = base64.b64decode(base64_string, validate=True)
                 file_to_save = "./Uploads/" + filename
@@ -141,8 +139,11 @@ def upload():
                 'status': 'Error'
             }
 
+    # worker result list object
+    worker_result = [dt_string, worker_name]
+
     # will track if helmet was found
-    flag = False
+    helmet_flag = False
 
     # loading file to model
     results = model("./Uploads/" + filename)
@@ -152,23 +153,62 @@ def upload():
         objMap = zip(r.boxes.cls, r.boxes.conf)
         for obj in objMap:
             if obj[0].item() == 0.0 and obj[1].item() >= 0.80:
-                flag = True
-                df.loc[len(df.index)] = [dt_string, worker_name, 'has helmet']
+                helmet_flag = True
+                # df.loc[len(df.index)] = [dt_string, worker_name, 'has helmet']
+                worker_result.append('has helmet')
                 print('has helmet')
                 break
             else:
                 continue
 
     # if no helmet was found with 80% or more confidence        
-    if not flag:
-        df.loc[len(df.index)] = [dt_string, worker_name, 'does not have helmet']
+    if not helmet_flag:
+        # df.loc[len(df.index)] = [dt_string, worker_name, 'does not have helmet']
+        worker_result.append('does not have helmet')
         print('does not have helmet')
 
+    # TESTING: multiclass model for face mask and ppe kit
+        
+    # 0: Hardhat
+    # 1: Mask
+    # 2: NO-Hardhat
+    # 3: NO-Mask
+    # 4: NO-Safety Vest
+    # 5: Person
+    # 6: Safety Cone
+    # 7: Safety Vest
+    # 8: Machinery
+    # 9: Vehicle
+
+    print("Multiclass model results:s")
+    model = YOLO('./multiclass-yolov8.pt')
+    results = model("./Uploads/" + filename)
+    ppe_flag = False
+
+    for r in results:
+        objMap = zip(r.boxes.cls, r.boxes.conf)
+        for obj in objMap:
+            if obj[0].item() == 7.0 and obj[1].item() >= 0.80:
+                ppe_flag = True
+                worker_result.append('has PPE Kit')
+                print('has PPE Kit')
+                break
+            else:
+                continue
+
+    # if no PPE Kit was found with 80% or more confidence        
+    if not ppe_flag:
+        worker_result.append('does not have PPE Kit')
+        print('does not have PPE Kit')
+
+    df.loc[len(df.index)] = worker_result
     # append entry to worker log
     df.to_csv(r'./worker_log.csv', index=False, mode='a', header=False)
 
     return {
-        'status': 'True' if flag else 'False'
+        'status': 'complete',
+        'helmet_status': helmet_flag,
+        'ppe_status': ppe_flag,
     }
 
 # dummy post endpoint
