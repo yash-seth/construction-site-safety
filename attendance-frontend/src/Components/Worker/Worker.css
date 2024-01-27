@@ -19,3 +19,22 @@
 .image-control-btn {
     margin: 5px;
 }
+
+.worker-report {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.worker-report-object {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: 5px;
+}
+
+#worker-report-exit-btn {
+    margin: 5px
+}

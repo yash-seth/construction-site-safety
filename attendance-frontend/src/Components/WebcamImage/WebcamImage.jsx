@@ -4,7 +4,7 @@ import "./WebcamImage.css"
 
 // get workers name for the file name
 
-function WebcamImage({ setWebcamView, img, setImg, workerName, setWorkerName }) {
+function WebcamImage({ setWebcamView, img, setImg, workerName, setWorkerName, resultLoading }) {
   const webcamRef = useRef(null);
 
     const capture = useCallback(() => {
@@ -25,7 +25,7 @@ function WebcamImage({ setWebcamView, img, setImg, workerName, setWorkerName }) 
 
   return (
     <div className="WebcamImage-main">
-      <label for='worker-name'>Enter Name: </label>
+      {resultLoading === false && <label for='worker-name'>Enter Name: </label>}
       <input onChange={ (e) => handleWokerNameChange(e) } value={workerName} id='wokrer-name' name='worker-name' type="text" />
       {img === null ? (
         <>
@@ -38,15 +38,15 @@ function WebcamImage({ setWebcamView, img, setImg, workerName, setWorkerName }) 
             ref={webcamRef}
             mirrored={true}
           />
-          <button className="image-control-btn" onClick={capture}>Capture photo</button>
+          {resultLoading === false && <button className="image-control-btn" onClick={capture}>Capture photo</button>}
         </>
       ) : (
         <>
           <img src={img} alt="screenshot" />
-          <button className="image-control-btn" onClick={() => setImg(null)}>Recapture</button>
+          {resultLoading === false && <button className="image-control-btn" onClick={() => setImg(null)}>Recapture</button>}
         </>
       )}
-      <button className="image-control-btn" onClick={() => {setWebcamView('closed'); setImg(null)}}>Close</button>
+      {resultLoading === false && <button className="image-control-btn" onClick={() => {setWebcamView('closed'); setImg(null); setWorkerName('')}}>Close</button>}
     </div>
   );
 }

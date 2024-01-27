@@ -8,6 +8,7 @@ function Worker({ webcamView, setWebcamView }) {
   const [file, setFile] = useState(null)
   const [resultLoading, setResultLoading] = useState(false)
   const [workerName, setWorkerName] = useState('')
+  const [reportView, setReportView] = useState(false)
   
   const handleUpload = () => {
       if(!file) {
@@ -37,19 +38,27 @@ function Worker({ webcamView, setWebcamView }) {
         .then((res) =>
             res.json().then((data) => {
                 console.log(data)
-                // if(data.status === 'True') alert('Helmet detected!')
-                // else if(data.status === 'False') alert('Helmet not detected!')
-                if(data.status === 'complete') {
-                  alert(`Helmet status: ${data['helmet_status'] ? 'Present' : 'Absent'} \nPPE status: ${data['ppe_status'] ? 'Present' : 'Absent'}\nFace Mask status: ${data['mask_status'] ? 'Present' : 'Absent'}`)
-                }
-                else if(data.status === 'Error') {
-                  alert('Please try again. There was an error!')
-                }
-                setFile(null)
-                document.getElementById("img-preview").src = null
-                document.getElementById("img-preview").setAttribute("style", "display:none;")
-                setResultLoading(false)
-                setWorkerName('')
+                // if(data.status === 'complete') {
+                //   alert(`Helmet status: ${data['helmet_status'] ? 'Present' : 'Absent'} \nPPE status: ${data['ppe_status'] ? 'Present' : 'Absent'}\nFace Mask status: ${data['mask_status'] ? 'Present' : 'Absent'}`)
+                // }
+                // else if(data.status === 'Error') {
+                //   alert('Please try again. There was an error!')
+                // }
+
+                if(data.status === 'Error') {
+                    alert('Please try again. There was an error!')
+                  }
+
+                // setFile(null)
+                // document.getElementById("img-preview").src = null
+                // document.getElementById("img-preview").setAttribute("style", "display:none;")
+                // setWorkerName('')
+                // setResultLoading(false)
+
+                document.getElementById("helmet-status-label").innerHTML = `${data['helmet_status'] ? 'Present' : 'Absent'}\n`
+                document.getElementById("PPE-status-label").innerHTML = `${data['ppe_status'] ? 'Present' : 'Absent'}\n`
+                document.getElementById("mask-status-label").innerHTML = `${data['mask_status'] ? 'Present' : 'Absent'}\n`
+                setReportView(true)
             })
         )
         .catch((err) => console.log(err));
@@ -65,18 +74,28 @@ function Worker({ webcamView, setWebcamView }) {
     }
   }
 
+  const exitReport = () => {
+    setFile(null)
+    document.getElementById("img-preview").src = null
+    document.getElementById("img-preview").setAttribute("style", "display:none;")
+    setWorkerName('')
+    setResultLoading(false)
+    setReportView(false)
+  }
+
   return (
     <div className='worker-main'>
       <h1>Worker View</h1>
       {webcamView === 'open' && 
       <>
-        <WebcamImage setWebcamView={setWebcamView} img={file} setImg={setFile} workerName={workerName} setWorkerName={setWorkerName}/>
+        <WebcamImage setWebcamView={setWebcamView} img={file} setImg={setFile} workerName={workerName} setWorkerName={setWorkerName} resultLoading={resultLoading}/>
       </>
       }
-      <label>Image: </label>
+      {resultLoading === false && <label>Image: </label>}
       <img id="img-preview" alt='preview'></img>
-      <input type='file' onChange={ (e) => { handleImageSelect(e) } } onClick={() => setWebcamView('closed')}/>
-      <div className='image-controls'>
+      {resultLoading === false && <input type='file' onChange={ (e) => { handleImageSelect(e) } } onClick={() => setWebcamView('closed')}/>}
+
+      {resultLoading === false && <div className='image-controls'>
         {webcamView === 'closed' && 
           <button className="image-control-btn" onClick={() => {
             setFile(null);
@@ -86,6 +105,32 @@ function Worker({ webcamView, setWebcamView }) {
               Capture Image
           </button>}
         {resultLoading ? <CircularProgress /> : <button className="image-control-btn" onClick={ handleUpload }>Upload</button>}
+      </div>}
+
+      <div>
+      {resultLoading && 
+        <>
+          <div className='worker-report'>
+            <h2>Worker Report</h2>
+            <div className='worker-report-object'>
+              <b>Helmet Status:</b>
+              {reportView === false && <CircularProgress />}
+              <label id="helmet-status-label"></label>
+            </div>
+            <div className='worker-report-object'>
+              <b>PPE Status:</b>
+              {reportView === false && <CircularProgress />}
+              <label id="PPE-status-label"></label>
+            </div>
+            <div className='worker-report-object'>
+            <b>Mask Status:</b>
+              {reportView === false && <CircularProgress />}
+              <label id="mask-status-label"></label>
+            </div>
+            <button id="worker-report-exit-btn" onClick={() => exitReport()}>Exit Report</button>
+          </div>
+        </>
+        }
       </div>
     </div>
   )
