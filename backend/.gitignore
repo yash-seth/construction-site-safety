@@ -1,3 +1,3 @@
 /Uploads
-.worker_log.csv
-/__pycache__
+*.csv
+*.pyc
