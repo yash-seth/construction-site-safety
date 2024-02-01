@@ -4,7 +4,7 @@ import "./WebcamImage.css"
 
 // get workers name for the file name
 
-function WebcamImage({ setWebcamView, img, setImg, workerName, setWorkerName, resultLoading, setWorkerID, workerID }) {
+function WebcamImage({ setWebcamView, img, setImg, workerName, setWorkerName, resultLoading, workerID, setWorkerID, department, setDepartment, departments }) {
   const webcamRef = useRef(null);
 
     const capture = useCallback(() => {
@@ -27,12 +27,26 @@ function WebcamImage({ setWebcamView, img, setImg, workerName, setWorkerName, re
       setWorkerID(e.target.value)
     }
 
+    const handleDepartmentChange = (e) => {
+      setDepartment(e.target.value)
+    }
+
   return (
     <div className="WebcamImage-main">
       {resultLoading === false && <label for='worker-name'>Enter Name: </label>}
       <input onChange={ (e) => handleWokerNameChange(e) } value={workerName} id='worker-name' name='worker-name' type="text" />
       {resultLoading === false && <label for='worker-id'>Enter ID: </label>}
       <input onChange={ (e) => handleWokerIDChange(e) } value={workerID} id='worker-id' name='worker-id' type="text" />
+      <label for='worker-department'>Select Department</label>
+              <select
+                onChange={(e) => handleDepartmentChange(e)}
+                defaultValue={department}
+                id="worker-department"
+              >
+                {departments.map((dep, idx) => (
+                  <option key={idx}>{dep}</option>
+                ))}
+              </select>
       {img === null ? (
         <>
           <Webcam

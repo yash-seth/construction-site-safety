@@ -10,6 +10,8 @@ function Worker({ webcamView, setWebcamView }) {
   const [workerName, setWorkerName] = useState('')
   const [workerID, setWorkerID] = useState('')
   const [reportView, setReportView] = useState(false)
+  const departments = ["------------------------","Architecture", "Brick Laying", "Painting"];
+  const [department, setDepartment] = useState(departments[0]);
   
   const handleUpload = () => {
       if(!file) {
@@ -26,6 +28,11 @@ function Worker({ webcamView, setWebcamView }) {
         alert('Worker ID is not entered!')
         return
       }
+
+      if(department === departments[0]) {
+        alert('Worker Department is not selected!')
+        return
+      }
       
       setResultLoading(true)
 
@@ -33,6 +40,7 @@ function Worker({ webcamView, setWebcamView }) {
       fd.append('file', file)
       fd.append('filename', webcamView === 'open' ? workerName.split(' ')[0] + '_' + workerName.split(' ')[1] + '.jpg' : fd.get('file').name)
       fd.append('workerID', workerID)
+      fd.append('workerDep', department)
       fd.append('source', webcamView === 'open' ? 'capture' : 'upload')
       console.log(fd.get('file'))
 
@@ -74,6 +82,7 @@ function Worker({ webcamView, setWebcamView }) {
     document.getElementById("img-preview").setAttribute("style", "display:none;")
     setWorkerName('')
     setWorkerID('')
+    setDepartment(departments[0])
     setResultLoading(false)
     setReportView(false)
   }
@@ -82,12 +91,17 @@ function Worker({ webcamView, setWebcamView }) {
     setWorkerID(e.target.value)
   }
 
+  const handleDepartmentChange = (e) => {
+    setDepartment(e.target.value)
+  }
+
   return (
     <div className='worker-main'>
       <h1>Worker View</h1>
       {webcamView === 'open' && 
       <>
-        <WebcamImage setWebcamView={setWebcamView} img={file} setImg={setFile} workerName={workerName} setWorkerName={setWorkerName} resultLoading={resultLoading} setWorkerID={setWorkerID} workerID={workerID}/>
+        <WebcamImage setWebcamView={setWebcamView} img={file} setImg={setFile} workerName={workerName} setWorkerName={setWorkerName} resultLoading={resultLoading} workerID={workerID} setWorkerID={setWorkerID} department={department} setDepartment={setDepartment} 
+        departments={departments} />
       </>
       }
       {resultLoading === false && <label>Image: </label>}
@@ -100,6 +114,16 @@ function Worker({ webcamView, setWebcamView }) {
             <>
               <label for='worker-id'>Enter ID: </label>
               <input onChange={ (e) => handleWokerIDChange(e) } value={workerID} id='worker-id' name='worker-id' type="text" />
+              <label for='worker-department'>Select Department</label>
+              <select
+                onChange={(e) => handleDepartmentChange(e)}
+                defaultValue={department}
+                id="worker-department"
+              >
+                {departments.map((dep, idx) => (
+                  <option key={idx}>{dep}</option>
+                ))}
+              </select>
               <button className="image-control-btn" onClick={() => {
               setFile(null);
               document.getElementById("img-preview").setAttribute("style", "display:none;");
