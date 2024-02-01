@@ -11,8 +11,8 @@
 
 .image-controls {
     display: flex;
-    flex-direction: row;
-    justify-content: space;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
 }
 
