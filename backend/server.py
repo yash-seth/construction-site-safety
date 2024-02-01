@@ -26,9 +26,9 @@ vectorDB = FAISS.load_local(r"D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\fais
 retriever = vectorDB.as_retriever()
 
 # prompt for the LLM queries and response - to prevent hallucinations
-prompt_template = """"The given context is that of a worker attendance log. It contains the entries of workers along with the status of     their respective protective gear along with the timestamp of when they logged in.
+prompt_template = """"The given context is that of a worker attendance log. It contains the entries of workers along with the status of     their respective protective gear along with the timestamp of when they logged in and other information about their work.
     Given the following context and a question, generate an answer based on this context only.
-    In the answer try to provide as much text as possible from "Department", "WorkerID", "LogID", "Helmet-Status", "Timestamp", "FaceMask-Status" and "PPE-Status" section in the source document context in the form of whole english sentences will all required parts of speech. If the requirement is mathematical or to list out, go over all the relevant documents in the context and then perform the necessary operations. Provide accurate results for mathematical and/or scenarios which require people names or other attributes to be listed out.
+    In the answer try to provide as much text as possible from "Attendance", "Department", "WorkerID", "LogID", "Helmet-Status", "Timestamp", "FaceMask-Status" and "PPE-Status" section in the source document context in the form of whole english sentences will all required parts of speech. If the requirement is mathematical or to list out, go over all the relevant documents in the context and then perform the necessary operations. Provide accurate results for mathematical and/or scenarios which require people names or other attributes to be listed out.
     If the answer is not found in the context, kindly state "I don't know." Don't try to make up an answer. 
     
     If more than one relevant documents exist for the same person, create your response around the most latest 'Timestamp' from the given documents in the context.
@@ -115,7 +115,7 @@ def upload():
             }
 
     model = YOLO('./yolov8_helmet_model.pt')
-    df = pd.DataFrame(columns=['LogID', 'Timestamp', "WorkerID", 'Name', "Department", 'Helmet-Status', 'PPE-Status', 'FaceMask-Status'])
+    df = pd.DataFrame(columns=['LogID', 'Timestamp', "WorkerID", 'Name', "Department", 'Helmet-Status', 'PPE-Status', 'FaceMask-Status', 'Attendance'])
 
     # get file name (from worker name)
     filename = request.form['filename']
@@ -230,6 +230,11 @@ def upload():
     if not mask_flag:
         worker_result.append('does not have face mask')
         print('does not have face mask')
+
+    if helmet_flag and mask_flag and ppe_flag:
+        worker_result.append("Present")
+    else:
+        worker_result.append("Absent")
 
     df.loc[len(df.index)] = worker_result
     # append entry to worker log
