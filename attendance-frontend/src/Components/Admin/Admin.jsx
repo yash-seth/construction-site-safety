@@ -49,6 +49,22 @@ function Admin() {
         );
     }
 
+    const clearLogs = () => {
+        setSyncLoading(true)
+        fetch("http://127.0.0.1:5000/clearLogs", {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }})
+        .then((res) =>
+            res.json().then((data) => {
+                alert(data.status)
+                setSyncLoading(false)
+            })
+        );
+    }
+
   return (
     <div className='admin-main'>
         <h1>Admin View</h1>
@@ -60,7 +76,10 @@ function Admin() {
             <button id="admin-query-btn" onClick={() => queryLLM()}>Query</button>
             {syncLoading === false
             ? 
-            <button id="admin-query-btn" onClick={() => {syncLogs();setQuery('');setAnswer({response: ''})}}>Sync</button>
+            <>
+                <button id="admin-query-btn" onClick={() => {syncLogs();setQuery('');setAnswer({response: ''})}}>Sync</button>
+                <button id="admin-clear-btn" onClick={() => clearLogs()}>Clear Logs</button>
+            </>
             :
             <label><CircularProgress /></label>
             }
