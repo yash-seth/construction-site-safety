@@ -11,6 +11,7 @@ from ultralytics import YOLO
 import pandas as pd
 from datetime import datetime
 import base64, binascii
+import uuid
 from langchain.document_loaders.csv_loader import CSVLoader
 
 # set up env for LLM Chain
@@ -27,7 +28,7 @@ retriever = vectorDB.as_retriever()
 # prompt for the LLM queries and response - to prevent hallucinations
 prompt_template = """"The given context is that of a worker attendance log. It contains the entries of workers along with the status of     their respective protective gear along with the timestamp of when they logged in.
     Given the following context and a question, generate an answer based on this context only.
-    In the answer try to provide as much text as possible from "Helmet-Status", "Timestamp", "FaceMask-Status" and "PPE-Status" section in the source document context in the form of whole english sentences will all required parts of speech. If the requirement is mathematical or to list out, go over all the relevant documents in the context and then perform the necessary operations. Provide accurate results for mathematical and/or scenarios which require people names or other attributes to be listed out.
+    In the answer try to provide as much text as possible from "LogID", "Helmet-Status", "Timestamp", "FaceMask-Status" and "PPE-Status" section in the source document context in the form of whole english sentences will all required parts of speech. If the requirement is mathematical or to list out, go over all the relevant documents in the context and then perform the necessary operations. Provide accurate results for mathematical and/or scenarios which require people names or other attributes to be listed out.
     If the answer is not found in the context, kindly state "I don't know." Don't try to make up an answer. 
     
     If more than one relevant documents exist for the same person, create your response around the most latest 'Timestamp' from the given documents in the context.
@@ -114,7 +115,7 @@ def upload():
             }
 
     model = YOLO('./yolov8_helmet_model.pt')
-    df = pd.DataFrame(columns=['Timestamp', 'Name', 'Helmet-Status', 'PPE-Status', 'FaceMask-Status'])
+    df = pd.DataFrame(columns=['LogID', 'Timestamp', 'Name', 'Helmet-Status', 'PPE-Status', 'FaceMask-Status'])
 
     filename = request.form['filename']
     fname = filename.split('.')[0].split('_')[0]
@@ -143,7 +144,8 @@ def upload():
             }
 
     # worker result list object
-    worker_result = [dt_string, worker_name]
+    logID = uuid.uuid4() # can serve as unique identifier for each worker log
+    worker_result = [logID, dt_string, worker_name]
 
     # will track if helmet was found
     helmet_flag = False
