@@ -350,6 +350,7 @@ def upload():
     df.loc[len(df.index)] = worker_result
     # append entry to worker log
     df.to_csv(r'./worker_log.csv', index=False, mode='a', header=False)
+    df.to_csv(r'D:/My_Stuff/VIT-20BCE1789/Sem 8/Capstone/Work/frontend/attendance-frontend/src/Components/Admin/worker_log.csv', index=False, mode='a', header=False)
 
     # remove stored images
     for path in img_paths:

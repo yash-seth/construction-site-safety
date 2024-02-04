@@ -2,6 +2,7 @@ import React from 'react'
 import { useState } from 'react'
 import "./Admin.css"
 import CircularProgress from '@mui/material/CircularProgress';
+import WorkerLogs from './worker_log.csv';
 
 function Admin() {
     const [query, setQuery] = useState('')
@@ -10,6 +11,7 @@ function Admin() {
     })
 
     const [syncLoading, setSyncLoading] = useState(false)
+    const [currentDate, setCurrentDate] = useState()
 
     const handleChange = (event) => {
         const value = event.target.value;
@@ -84,6 +86,14 @@ function Admin() {
             <label><CircularProgress /></label>
             }
             <button id="admin-query-btn" onClick={() => {setQuery('');setAnswer({response: ''})}}>Reset</button>
+            <a
+                href={WorkerLogs}
+                download={currentDate}
+                target="_blank"
+                rel="noreferrer"
+            >
+            <button onClick={() => setCurrentDate(new Date().toLocaleDateString())}>Download Worker Logs</button>
+            </a>
         </div>
         <h3><label>{answer.response}</label></h3>
     </div>
