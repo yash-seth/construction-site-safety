@@ -12,6 +12,9 @@ import pandas as pd
 from datetime import datetime
 import base64, binascii
 import uuid
+import cv2
+import numpy as np
+from PIL import Image
 from langchain.document_loaders.csv_loader import CSVLoader
 
 # set up env for LLM Chain
@@ -49,6 +52,79 @@ chain = RetrievalQA.from_chain_type(llm=llm,
                                     return_source_documents=True,
                                     chain_type_kwargs={"prompt": PROMPT})
 
+
+# colour transformations for applying Test Time Augmentation (TTA) technique to improve object detection
+
+def histogramEqualization(img_path, filename):
+    img = cv2.imread(img_path, 0) 
+    equ = cv2.equalizeHist(img)
+    cv2.imwrite("./Transformations/HistogramEqualization/" + filename, equ) 
+
+def gammaCorrection(img_path, filename):
+    img = cv2.imread(img_path, 0) 
+    gamma_corrected = np.array(255*(img / 255) ** 1.2, dtype = 'uint8') 
+    cv2.imwrite("./Transformations/GammaCorrected/" + filename, gamma_corrected) 
+
+def gaussianBlurring(img_path, filename):
+    img = cv2.imread(img_path, 0) 
+    Gaussian = cv2.GaussianBlur(img, (7, 7), 0) 
+    cv2.imwrite("./Transformations/GaussianBlurred/" + filename, Gaussian) 
+
+def normalizeRed(intensity):
+    iI      = intensity
+    minI    = 86
+    maxI    = 230
+    minO    = 0
+    maxO    = 255
+    iO      = (iI-minI)*(((maxO-minO)/(maxI-minI))+minO)
+    return iO
+
+def normalizeGreen(intensity):
+    iI      = intensity  
+    minI    = 90
+    maxI    = 225 
+    minO    = 0
+    maxO    = 255 
+    iO      = (iI-minI)*(((maxO-minO)/(maxI-minI))+minO)
+    return iO
+
+# Method to process the blue band of the image
+
+def normalizeBlue(intensity):
+    iI      = intensity   
+    minI    = 100
+    maxI    = 210
+    minO    = 0
+    maxO    = 255
+    iO      = (iI-minI)*(((maxO-minO)/(maxI-minI))+minO)
+    return iO
+
+
+def contrastStetching(img_path, filename):
+    # Create an image object
+    imageObject     = Image.open(img_path)    
+    # Split the red, green and blue bands from the Image
+    multiBands      = imageObject.split()
+   
+    # Apply point operations that does contrast stretching on each color band
+    normalizedRedBand      = multiBands[0].point(normalizeRed)
+    normalizedGreenBand    = multiBands[1].point(normalizeGreen)
+    normalizedBlueBand     = multiBands[2].point(normalizeBlue)
+   
+    # Create a new image from the contrast stretched red, green and blue brands
+    normalizedImage = Image.merge("RGB", (normalizedRedBand, normalizedGreenBand, normalizedBlueBand))
+    normalizedImage.save("./Transformations/ContrastStretched/" + filename) 
+
+
+# function to take in image and return the max confidence for the class required
+def getMaxConfidence(results, label):
+    maxConfidence = 0.0
+    for r in results:
+        objMap = zip(r.boxes.cls, r.boxes.conf)
+        for obj in objMap:
+            if obj[0].item() == label:
+                maxConfidence = max(maxConfidence, obj[1].item())
+    return maxConfidence * 100
 
 # set up flask app with CORS to allow sending and receiving data
 app = Flask(__name__)
@@ -167,26 +243,36 @@ def upload():
     logID = uuid.uuid4() # can serve as unique identifier for each worker log
     worker_result = [logID, dt_string, workerID, worker_name, workerDep]
 
+
+    # generating image transformations for uploaded image to apply TTA technique
+    histogramEqualization("./Uploads/" + filename, filename)
+    gammaCorrection("./Uploads/" + filename, filename)
+    gaussianBlurring("./Uploads/" + filename, filename)
+    contrastStetching("./Uploads/" + filename, filename)
+
+    # paths to the transformed images and original image
+    img_paths = ["./Uploads/", "./Transformations/ContrastStretched/", "./Transformations/GaussianBlurred/", "./Transformations/GammaCorrected/", "./Transformations/HistogramEqualization/"]
+
     # will track if helmet was found
     helmet_flag = False
 
-    # loading file to model
-    results = model("./Uploads/" + filename)
+    # none type colour transformation
+    totalConfidence = 0
+    for path in img_paths:
+        results = model(path + filename)
+        totalConfidence += getMaxConfidence(results, 0.0)
 
-    print("Helmet Results:")
-    # going over identified objects and their confidence values in the image
-    for r in results:
-        objMap = zip(r.boxes.cls, r.boxes.conf)
-        for obj in objMap:
-            if obj[0].item() == 0.0 and obj[1].item() >= 0.80:
-                helmet_flag = True
-                worker_result.append('has helmet')
-                print('has helmet')
-                break
-            else:
-                continue
+    allModelConfidence = totalConfidence / 500
+    if allModelConfidence >= 0.75:
+        helmet_flag = True
+    else:
+        helmet_flag = False
 
-    # if no helmet was found with 80% or more confidence        
+    print("All model Confidence for helmet: ", allModelConfidence)
+    if helmet_flag:
+        worker_result.append('has helmet')
+        print('has helmet')
+    # # if no helmet was found with 80% or more confidence        
     if not helmet_flag:
         worker_result.append('does not have helmet')
         print('does not have helmet')
@@ -206,21 +292,24 @@ def upload():
 
     print("PPE Kit Results:")
     model = YOLO('./multiclass-yolov8.pt')
-    results = model("./Uploads/" + filename)
     ppe_flag = False
 
-    for r in results:
-        objMap = zip(r.boxes.cls, r.boxes.conf)
-        for obj in objMap:
-            if obj[0].item() == 7.0 and obj[1].item() >= 0.80:
-                ppe_flag = True
-                worker_result.append('has PPE Kit')
-                print('has PPE Kit')
-                break
-            else:
-                continue
+    totalConfidence = 0
+    for path in img_paths:
+        results = model(path + filename)
+        totalConfidence += getMaxConfidence(results, 7.0)
 
-    # if no PPE Kit was found with 80% or more confidence        
+    allModelConfidence = totalConfidence / 500
+    if allModelConfidence >= 0.75:
+        ppe_flag = True
+    else:
+        ppe_flag = False
+
+    print("All model Confidence for PPE: ", allModelConfidence)
+    # if no PPE Kit was found with 80% or more confidence    
+    if ppe_flag:
+        worker_result.append('has PPE kit')
+        print('has PPE kit')    
     if not ppe_flag:
         worker_result.append('does not have PPE Kit')
         print('does not have PPE Kit')
@@ -228,25 +317,29 @@ def upload():
     
     print("Face Mask Results:")
     model = YOLO('./multiclass-yolov8.pt')
-    results = model("./Uploads/" + filename)
     mask_flag = False
 
-    for r in results:
-        objMap = zip(r.boxes.cls, r.boxes.conf)
-        for obj in objMap:
-            if obj[0].item() == 1.0 and obj[1].item() >= 0.80:
-                mask_flag = True
-                worker_result.append('has face mask')
-                print('has face mask')
-                break
-            else:
-                continue
+    totalConfidence = 0
+    for path in img_paths:
+        results = model(path + filename)
+        totalConfidence += getMaxConfidence(results, 1.0)
 
-    # if no face mask was found with 80% or more confidence        
+    allModelConfidence = totalConfidence / 500
+    if allModelConfidence >= 0.75:
+        mask_flag = True
+    else:
+        mask_flag = False
+
+    print("All model Confidence for mask: ", allModelConfidence)
+    # if no face mask was found with 80% or more confidence    
+    if mask_flag:
+        worker_result.append('has face mask')
+        print('has face mask')    
     if not mask_flag:
         worker_result.append('does not have face mask')
         print('does not have face mask')
 
+    # marking overall attendance based on identified safety gear status
     if helmet_flag and mask_flag and ppe_flag:
         worker_result.append("Present")
     else:
@@ -255,6 +348,10 @@ def upload():
     df.loc[len(df.index)] = worker_result
     # append entry to worker log
     df.to_csv(r'./worker_log.csv', index=False, mode='a', header=False)
+
+    # remove stored images
+    for path in img_paths:
+        os.remove(path + filename)
 
     return {
         'status': 'complete',
