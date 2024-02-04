@@ -100,7 +100,7 @@ def normalizeBlue(intensity):
     return iO
 
 
-def contrastStetching(img_path, filename):
+def contrastStretching(img_path, filename):
     # Create an image object
     imageObject     = Image.open(img_path)    
     # Split the red, green and blue bands from the Image
@@ -248,7 +248,7 @@ def upload():
     histogramEqualization("./Uploads/" + filename, filename)
     gammaCorrection("./Uploads/" + filename, filename)
     gaussianBlurring("./Uploads/" + filename, filename)
-    contrastStetching("./Uploads/" + filename, filename)
+    contrastStretching("./Uploads/" + filename, filename)
 
     # paths to the transformed images and original image
     img_paths = ["./Uploads/", "./Transformations/ContrastStretched/", "./Transformations/GaussianBlurred/", "./Transformations/GammaCorrected/", "./Transformations/HistogramEqualization/"]
