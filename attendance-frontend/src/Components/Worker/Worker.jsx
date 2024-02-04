@@ -60,6 +60,7 @@ function Worker({ webcamView, setWebcamView }) {
                 document.getElementById("helmet-status-label").innerHTML = `${data['helmet_status'] ? 'Present' : 'Absent'}\n`
                 document.getElementById("PPE-status-label").innerHTML = `${data['ppe_status'] ? 'Present' : 'Absent'}\n`
                 document.getElementById("mask-status-label").innerHTML = `${data['mask_status'] ? 'Present' : 'Absent'}\n`
+                document.getElementById("attendance-status-label").innerHTML = `${data['attendance_status'] ? 'Present' : 'Absent'}\n`
                 setReportView(true)
             })
         )
@@ -153,9 +154,14 @@ function Worker({ webcamView, setWebcamView }) {
               <label id="PPE-status-label"></label>
             </div>
             <div className='worker-report-object'>
-            <b>Mask Status:</b>
+              <b>Mask Status:</b>
               {reportView === false && <CircularProgress />}
               <label id="mask-status-label"></label>
+            </div>
+            <div className='worker-report-object'>
+              <b>Attendance Status:</b>
+              {reportView === false && <CircularProgress />}
+              <label id="attendance-status-label"></label>
             </div>
             <button id="worker-report-exit-btn" onClick={() => exitReport()}>Exit Report</button>
           </div>

@@ -340,8 +340,10 @@ def upload():
         print('does not have face mask')
 
     # marking overall attendance based on identified safety gear status
+    attendance_flag = False
     if helmet_flag and mask_flag and ppe_flag:
         worker_result.append("Present")
+        attendance_flag = True
     else:
         worker_result.append("Absent")
 
@@ -358,6 +360,7 @@ def upload():
         'helmet_status': helmet_flag,
         'ppe_status': ppe_flag,
         'mask_status': mask_flag,
+        'attendance_status': attendance_flag
     }
 
 # dummy post endpoint
