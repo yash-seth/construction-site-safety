@@ -208,7 +208,86 @@ class RAGEvaluator:
                 recall = counter / len(relevantDocs)
             recallScore += recall
         return recallScore / len(queries)
+    def context_precision(self, query, chain, embeddings):
+        LLM_Response = chain(query)
+        answer = LLM_Response['result']
 
+        # creating query embeddings
+        query_embeddings = embeddings.embed_query(query)
+        query_embeddings = np.array(query_embeddings)
+        query_embeddings = query_embeddings.reshape(1, -1)
+
+        # recalled docs
+        recalledDocs = LLM_Response['source_documents']
+        recalledDocsContent = []
+        for docs in recalledDocs:
+            docString = ''
+            timeStampCounter = 0
+            for col in docs.page_content.split('\n'):
+                if timeStampCounter == 1:
+                    docString += col.split(':')[1].strip() + ':' + col.split(':')[2].strip() + ':' + col.split(':')[3].strip() + ' '
+                else:
+                    docString += col.split(':')[1].strip() + ' '
+                timeStampCounter += 1
+            recalledDocsContent.append(docString)
+        
+        # check how many retrieved items are actually relevant to the query
+        counter = 0
+        for doc in recalledDocsContent:
+            doc_embedding = embeddings.embed_query(doc)
+            doc_embedding = np.array(doc_embedding)
+            doc_embedding = doc_embedding.reshape(1, -1)
+            similarity = cosine_similarity(doc_embedding, query_embeddings)[0][0]
+            if similarity > 0.80:
+                counter += 1
+        
+        precision = 0
+        if len(recalledDocsContent) != 0:
+            precision = counter / len(recalledDocsContent)
+        
+        return precision
+    
+    def context_precision_batch(self, queries, chain, embeddings):
+        precisionScore = 0
+        for query in queries:
+            LLM_Response = chain(query)
+            answer = LLM_Response['result']
+
+            # creating query embeddings
+            query_embeddings = embeddings.embed_query(query)
+            query_embeddings = np.array(query_embeddings)
+            query_embeddings = query_embeddings.reshape(1, -1)
+
+            # recalled docs
+            recalledDocs = LLM_Response['source_documents']
+            recalledDocsContent = []
+            for docs in recalledDocs:
+                docString = ''
+                timeStampCounter = 0
+                for col in docs.page_content.split('\n'):
+                    if timeStampCounter == 1:
+                        docString += col.split(':')[1].strip() + ':' + col.split(':')[2].strip() + ':' + col.split(':')[3].strip() + ' '
+                    else:
+                        docString += col.split(':')[1].strip() + ' '
+                    timeStampCounter += 1
+                recalledDocsContent.append(docString)
+            
+            # check how many retrieved items are actually relevant to the query
+            counter = 0
+            for doc in recalledDocsContent:
+                doc_embedding = embeddings.embed_query(doc)
+                doc_embedding = np.array(doc_embedding)
+                doc_embedding = doc_embedding.reshape(1, -1)
+                similarity = cosine_similarity(doc_embedding, query_embeddings)[0][0]
+                if similarity > 0.80:
+                    counter += 1
+            
+            precision = 0
+            if len(recalledDocsContent) != 0:
+                precision = counter / len(recalledDocsContent)
+            precisionScore += precision
+        
+        return precisionScore / len(queries)
     def generateMetrics(self, queries, chain, embeddings, metric, num_of_runs):
         if metric == 'faithfulness':
             for i in range(0, num_of_runs):
