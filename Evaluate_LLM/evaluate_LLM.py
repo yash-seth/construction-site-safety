@@ -313,7 +313,7 @@ embeddings = HuggingFaceInstructEmbeddings()
 
 # load vectorDB for embeddings of the worker logs
 vectorDB = FAISS.load_local(r"D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\faiss_index", embeddings)
-retriever = vectorDB.as_retriever()
+retriever = vectorDB.as_retriever(search_kwargs={"k": 10})
 
 # prompt for the LLM queries and response - to prevent hallucinations
 prompt_template = """"The given context is that of a worker attendance log. It contains the entries of workers along with the status of     their respective protective gear along with the timestamp of when they logged in and other information about their work.
