@@ -48,12 +48,51 @@ class LLMEvaluator:
             relevancyScore += similarity
 
         relevancyScore = relevancyScore / len(queries)
-        print("Final Relevancy Score:", relevancyScore)
+    def faithfulness_score(self, query, chain, embeddings):
+        LLM_Response = chain(query)
+        answer = LLM_Response['result']
+        answer_embeddings = embeddings.embed_query(answer)
+        answer_embeddings = np.array(answer_embeddings)
+        answer_embeddings = answer_embeddings.reshape(1, -1)
+        
+        context = LLM_Response['source_documents']
+        faithfulness_score = 0
+        for key, doc in enumerate(context):
+            doc_content = doc.page_content
+            doc_content_embedding = embeddings.embed_query(doc_content)
+            doc_content_embedding = np.array(doc_content_embedding)
+            doc_content_embedding = doc_content_embedding.reshape(1, -1)
+            similarity = cosine_similarity(doc_content_embedding, answer_embeddings)[0][0]
+            faithfulness_score += similarity
+        
+        faithfulnessScore = faithfulness_score / len(context)
+        return faithfulnessScore
 
-        relevancy_results_log = pd.read_csv(r'D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\Evaluate_LLM\relevancy_results.csv') 
-        df = pd.DataFrame(columns=['RunID', 'Score'])
-        df.loc[len(df.index)] = [len(relevancy_results_log)+1, relevancyScore]
-        df.to_csv(r'D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\Evaluate_LLM\relevancy_results.csv', index=False, mode='a', header=False)
+    def faithfulness_score_batch(self, queries, chain, embeddings):
+        final_faithfulness_score = 0
+        for query in queries:
+            LLM_Response = chain(query)
+            answer = LLM_Response['result']
+            answer_embeddings = embeddings.embed_query(answer)
+            answer_embeddings = np.array(answer_embeddings)
+            answer_embeddings = answer_embeddings.reshape(1, -1)
+            
+            context = LLM_Response['source_documents']
+            faithfulness_score = 0
+            for key, doc in enumerate(context):
+                doc_content = doc.page_content
+                doc_content_embedding = embeddings.embed_query(doc_content)
+                doc_content_embedding = np.array(doc_content_embedding)
+                doc_content_embedding = doc_content_embedding.reshape(1, -1)
+                similarity = cosine_similarity(doc_content_embedding, answer_embeddings)[0][0]
+                faithfulness_score += similarity
+            
+            avg_faithfulness_score = faithfulness_score / len(context)
+            final_faithfulness_score += avg_faithfulness_score
+        
+        final_faithfulness_score = final_faithfulness_score / len(queries)
+
+        return final_faithfulness_score
 
     def faithfulness(self, query):
         print("Inside faithfulness func")
