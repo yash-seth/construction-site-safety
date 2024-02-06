@@ -10,7 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 
 
-class LLMEvaluator:
+class RAGEvaluator:
     def relevancy_score(self, query, chain, embeddings):
         LLM_Response = chain(query)
         answer = LLM_Response['result']
@@ -94,10 +94,20 @@ class LLMEvaluator:
 
         return final_faithfulness_score
 
-    def faithfulness(self, query):
-        print("Inside faithfulness func")
+    def generateMetrics(self, queries, chain, embeddings, metric, num_of_runs):
+        if metric == 'faithfulness':
+            for i in range(0, num_of_runs):
+                run_faithfulness_score = self.faithfulness_score_batch(queries, chain, embeddings)
+                df = pd.DataFrame(columns=['RunID', 'Score'])
+                df.loc[len(df.index)] = [i+1, run_faithfulness_score]
+                df.to_csv(r'D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\frontend\Evaluate_LLM\faithfulness_results.csv', index=False, mode='a', header=False)
 
-    
+        elif metric == 'relevancy':
+            for i in range(0, num_of_runs):
+                run_relevancy_score = self.relevancy_score_batch(queries, chain, embeddings)
+                df = pd.DataFrame(columns=['RunID', 'Score'])
+                df.loc[len(df.index)] = [i+1, run_relevancy_score]
+                df.to_csv(r'D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\frontend\Evaluate_LLM\relevancy_results.csv', index=False, mode='a', header=False)
 
 # set up env for LLM Chain
 llm = GooglePalm(google_api_key="AIzaSyCm-45dqF12sh65lga0ERhSTWYXneFSt8k", temperature = 0.7)
@@ -134,13 +144,15 @@ chain = RetrievalQA.from_chain_type(llm=llm,
                                     return_source_documents=True,
                                     chain_type_kwargs={"prompt": PROMPT})
 
-evaluator = LLMEvaluator()
+# instatntiating the RAG Evaluator Object
+evaluator = RAGEvaluator()
 
-
-# evaluator.relevancy_score("Who all in the architecture department did not wear helmet?", chain, embeddings)
-
+# add the queries you want to generate metrics for
 queries = ["Who all in the architecture department did not wear helmet?", "Who all didn't wear helmet in the worker logs?", "How many of the painting department didn't wear helmet AND face mask?", "List out the names of those who didn't wear helmet", "How many people are marked absent?"]
 
+# running ten runs of faithfulness metrics for the above 
+# evaluator.generateMetrics(queries, chain, embeddings, 'faithfulness', 10)
+evaluator.generateMetrics(queries, chain, embeddings, 'relevancy', 10)
 
 # running ten runs of relevancy metrics for the above 
 for i in range(0, 10):
