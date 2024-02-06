@@ -208,6 +208,7 @@ class RAGEvaluator:
                 recall = counter / len(relevantDocs)
             recallScore += recall
         return recallScore / len(queries)
+    
     def context_precision(self, query, chain, embeddings):
         LLM_Response = chain(query)
         answer = LLM_Response['result']
@@ -288,6 +289,8 @@ class RAGEvaluator:
             precisionScore += precision
         
         return precisionScore / len(queries)
+
+
     def generateMetrics(self, queries, chain, embeddings, metric, num_of_runs):
         if metric == 'faithfulness':
             for i in range(0, num_of_runs):
@@ -302,6 +305,8 @@ class RAGEvaluator:
                 df = pd.DataFrame(columns=['RunID', 'Score'])
                 df.loc[len(df.index)] = [i+1, run_relevancy_score]
                 df.to_csv(r'D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\frontend\Evaluate_LLM\relevancy_results.csv', index=False, mode='a', header=False)
+        
+            
 
 
 # set up env for LLM Chain
@@ -343,8 +348,12 @@ chain = RetrievalQA.from_chain_type(llm=llm,
 evaluator = RAGEvaluator()
 
 # add the queries you want to generate metrics for
-queries = ["Who all in the architecture department did not wear helmet?", "Who all didn't wear helmet in the worker logs?", "How many of the painting department didn't wear helmet AND face mask?", "List out the names of those who didn't wear helmet", "How many people are marked absent?"]
+queries = ["Who all in the architecture department did not wear helmet?", "Who all didn't wear helmet in the worker logs?", "How many of the painting department didn't wear helmet AND face mask?", "List out the names of those who didn't wear helmet", "How many people are marked absent?", "Status of Yash Seth?"]
 
 # running ten runs of faithfulness metrics for the above 
 # evaluator.generateMetrics(queries, chain, embeddings, 'faithfulness', 10)
-evaluator.generateMetrics(queries, chain, embeddings, 'relevancy', 10)
+# evaluator.generateMetrics(queries, chain, embeddings, 'relevancy', 10)
+
+# print("Recall Value: ", evaluator.context_recall_batch(queries, chain, embeddings))
+
+print("Recall Value: ", evaluator.context_precision_batch(queries, chain, embeddings))
