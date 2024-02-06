@@ -98,6 +98,116 @@ class RAGEvaluator:
 
         return final_faithfulness_score
 
+    def context_recall(self, query, chain, embeddings):
+        LLM_Response = chain(query)
+        answer = LLM_Response['result']
+
+        # creating query embeddings
+        query_embeddings = embeddings.embed_query(query)
+        query_embeddings = np.array(query_embeddings)
+        query_embeddings = query_embeddings.reshape(1, -1)
+
+        # recalled docs
+        recalledDocs = LLM_Response['source_documents']
+        recalledDocsContent = []
+        for docs in recalledDocs:
+            docString = ''
+            timeStampCounter = 0
+            for col in docs.page_content.split('\n'):
+                if timeStampCounter == 1:
+                    docString += col.split(':')[1].strip() + ':' + col.split(':')[2].strip() + ':' + col.split(':')[3].strip() + ' '
+                else:
+                    docString += col.split(':')[1].strip() + ' '
+                timeStampCounter += 1
+            recalledDocsContent.append(docString)
+        
+        # get all docs in the worker logs
+        worker_log = pd.read_csv(r'D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\frontend\backend\\worker_log.csv')
+        allDocs = []
+        columns = ['LogID','Timestamp','WorkerID','Name','Department','Helmet-Status','PPE-Status','FaceMask-Status','Attendance']
+        for ind in worker_log.index:
+            log = ""
+            for col in columns:
+                log += str(worker_log[col][ind]).strip() + " "
+            allDocs.append(log)
+
+        # find the actually relevant docs from all docs by comparing query with allDocs and taking out those with cosine > 0.5
+        relevantDocs = []
+        for doc in allDocs:
+            doc_embedding = embeddings.embed_query(doc)
+            doc_embedding = np.array(doc_embedding)
+            doc_embedding = doc_embedding.reshape(1, -1)
+            similarity = cosine_similarity(doc_embedding, query_embeddings)[0][0]
+            # print(doc, similarity)
+            if similarity > 0.80:
+                relevantDocs.append(doc)
+
+        # check how many of relevant docs were actually recalled out of the relevant docs
+        counter = 0
+        for doc in recalledDocsContent:
+            if doc in relevantDocs:
+                counter +=1
+
+        recall = counter / len(relevantDocs)
+        return [counter, len(relevantDocs), recall]
+    
+    def context_recall_batch(self, queries, chain, embeddings):
+        recallScore = 0
+        for query in queries:
+            LLM_Response = chain(query)
+            answer = LLM_Response['result']
+
+            # creating query embeddings
+            query_embeddings = embeddings.embed_query(query)
+            query_embeddings = np.array(query_embeddings)
+            query_embeddings = query_embeddings.reshape(1, -1)
+
+            # recalled docs
+            recalledDocs = LLM_Response['source_documents']
+            recalledDocsContent = []
+            for docs in recalledDocs:
+                docString = ''
+                timeStampCounter = 0
+                for col in docs.page_content.split('\n'):
+                    if timeStampCounter == 1:
+                        docString += col.split(':')[1].strip() + ':' + col.split(':')[2].strip() + ':' + col.split(':')[3].strip() + ' '
+                    else:
+                        docString += col.split(':')[1].strip() + ' '
+                    timeStampCounter += 1
+                recalledDocsContent.append(docString)
+            
+            # get all docs in the worker logs
+            worker_log = pd.read_csv(r'D:\My_Stuff\VIT-20BCE1789\Sem 8\Capstone\Work\frontend\backend\\worker_log.csv')
+            allDocs = []
+            columns = ['LogID','Timestamp','WorkerID','Name','Department','Helmet-Status','PPE-Status','FaceMask-Status','Attendance']
+            for ind in worker_log.index:
+                log = ""
+                for col in columns:
+                    log += str(worker_log[col][ind]).strip() + " "
+                allDocs.append(log)
+
+            # find the actually relevant docs from all docs by comparing query with allDocs and taking out those with cosine > 0.5
+            relevantDocs = []
+            for doc in allDocs:
+                doc_embedding = embeddings.embed_query(doc)
+                doc_embedding = np.array(doc_embedding)
+                doc_embedding = doc_embedding.reshape(1, -1)
+                similarity = cosine_similarity(doc_embedding, query_embeddings)[0][0]
+                # print(doc, similarity)
+                if similarity > 0.80:
+                    relevantDocs.append(doc)
+
+            # check how many of relevant docs were actually recalled out of the relevant docs
+            counter = 0
+            for doc in recalledDocsContent:
+                if doc in relevantDocs:
+                    counter +=1
+            
+            recall = 0
+            if len(relevantDocs) != 0:
+                recall = counter / len(relevantDocs)
+            recallScore += recall
+        return recallScore / len(queries)
 
     def generateMetrics(self, queries, chain, embeddings, metric, num_of_runs):
         if metric == 'faithfulness':
