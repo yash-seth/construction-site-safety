@@ -69,3 +69,12 @@ while True:
         
 vid.release()
 cv2.destroyAllWindows()
+
+# to visualize detected objects in video feed directly
+# model = YOLO('../backend/yolov8_helmet_model.pt')
+
+# results = model(source, save=True, line_width = 2, conf=0.5)
+
+# model = YOLO('../backend/multiclass-yolov8.pt')
+
+# results = model(source, save=True, line_width = 2, conf=0.5)
