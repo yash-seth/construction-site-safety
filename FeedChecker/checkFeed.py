@@ -9,6 +9,12 @@ source = './combined_short.mp4'
 
 # return percentage of the helmet [a1, a2, b1, b2] which lies within the bounding box of the identified person [x1, x2, y1, y2]
 def getOverlap(x1, x2, y1, y2, a1, a2, b1, b2):
+    # get the height person
+    personHeight = y2 - y1
+    
+    # update bottom right coordinates to 1/3rd of the height and original width
+    y2 = y1 + personHeight/3
+
     # checking for non-overlapping case
     if a1 > x2 or x1 > a2 or b1 > y2 or y1 > b2:
         return 0
@@ -71,7 +77,7 @@ while True:
                 print("Overlap percentage: ", PercentageOverlap)
                 if PercentageOverlap < 80:
                     print("Worker without helmet spotted!")
-                    print(f"Bounding box of worker without helmet: (x1, y1): ({x1}, {y1}), (x2, y2): ({x2}, {y2})")
+                    print(f"Bounding box of worker without helmet: (x1, y1): ({x1}, {y1}), (x2, y2): ({x2}, {y2})\n")
     else:
         break
         
