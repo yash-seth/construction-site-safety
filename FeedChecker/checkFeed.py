@@ -9,19 +9,21 @@ source = './combined_short.mp4'
 
 # return percentage of the helmet [a1, a2, b1, b2] which lies within the bounding box of the identified person [x1, x2, y1, y2]
 def getOverlap(x1, x2, y1, y2, a1, a2, b1, b2):
-    # get the height person
+    # get the height of person
     personHeight = y2 - y1
     
     # update bottom right coordinates to 1/3rd of the height and original width
     y2 = y1 + personHeight/3
 
-    # checking for non-overlapping case
+    # checking for non-overlapping case or bottom 2/3rd of person case
     if a1 > x2 or x1 > a2 or b1 > y2 or y1 > b2:
         return 0
 
+    # coordinates of area of overlap
     top_coordinate = [max(a1, x1), max(b1, y1)]
     bottom_coordinate = [min(a2, x2), min(b2, y2)]
 
+    # Area of rectangle: length * breadth
     AreaOfOverlap = (bottom_coordinate[0] - top_coordinate[0]) * (bottom_coordinate[1] - top_coordinate[1])
 
     # total area of helmet
