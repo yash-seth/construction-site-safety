@@ -290,22 +290,31 @@ def upload():
     # 8: Machinery
     # 9: Vehicle
 
-    print("PPE Kit Results:")
     model = YOLO('./multiclass-yolov8.pt')
     ppe_flag = False
+    mask_flag = False
 
-    totalConfidence = 0
+    totalConfidencePPE = 0
+    totalConfidenceMask = 0
     for path in img_paths:
         results = model(path + filename)
-        totalConfidence += getMaxConfidence(results, 7.0)
+        totalConfidencePPE += getMaxConfidence(results, 7.0)
+        totalConfidenceMask += getMaxConfidence(results, 1.0)
 
-    allModelConfidence = totalConfidence / 500
-    if allModelConfidence >= 0.75:
+    allModelConfidencePPE = totalConfidencePPE / (len(img_paths) * 100)
+    allModelConfidenceMask = totalConfidenceMask / (len(img_paths) * 100)
+
+    if allModelConfidencePPE >= 0.75:
         ppe_flag = True
     else:
         ppe_flag = False
+    
+    if allModelConfidenceMask >= 0.75:
+        mask_flag = True
+    else:
+        mask_flag = False
 
-    print("All model Confidence for PPE: ", allModelConfidence)
+    print("All model Confidence for PPE: ", allModelConfidencePPE)
     # if no PPE Kit was found with 80% or more confidence    
     if ppe_flag:
         worker_result.append('has PPE kit')
@@ -314,31 +323,14 @@ def upload():
         worker_result.append('does not have PPE Kit')
         print('does not have PPE Kit')
 
-    
-    print("Face Mask Results:")
-    model = YOLO('./multiclass-yolov8.pt')
-    mask_flag = False
-
-    totalConfidence = 0
-    for path in img_paths:
-        results = model(path + filename)
-        totalConfidence += getMaxConfidence(results, 1.0)
-
-    allModelConfidence = totalConfidence / 500
-    if allModelConfidence >= 0.75:
-        mask_flag = True
-    else:
-        mask_flag = False
-
-    print("All model Confidence for mask: ", allModelConfidence)
-    # if no face mask was found with 80% or more confidence    
+    print("All model Confidence for Face Mask: ", allModelConfidenceMask)
+    # if no PPE Kit was found with 80% or more confidence    
     if mask_flag:
         worker_result.append('has face mask')
         print('has face mask')    
     if not mask_flag:
         worker_result.append('does not have face mask')
         print('does not have face mask')
-    allModelConfidence = totalConfidence / (len(img_paths) * 100)
 
     # marking overall attendance based on identified safety gear status
     attendance_flag = False
