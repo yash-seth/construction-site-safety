@@ -72,7 +72,7 @@ function Admin() {
         <h1>Admin View</h1>
         <div className='admin-query-div'>
             <label id="admin-query-label">Write query here: </label>
-            <input id="admin-query-input"type="text" onChange={handleChange} value={query}/>
+            <textarea id="admin-query-input"type="text" onChange={handleChange} value={query}/>
         </div>
         <div className='admin-query-controls'>
             <button id="admin-query-btn" onClick={() => queryLLM()}>Query</button>
