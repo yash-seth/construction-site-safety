@@ -262,7 +262,7 @@ def upload():
         results = model(path + filename)
         totalConfidence += getMaxConfidence(results, 0.0)
 
-    allModelConfidence = totalConfidence / 500
+    allModelConfidence = totalConfidence / (len(img_paths) * 100)
     if allModelConfidence >= 0.75:
         helmet_flag = True
     else:
@@ -338,6 +338,7 @@ def upload():
     if not mask_flag:
         worker_result.append('does not have face mask')
         print('does not have face mask')
+    allModelConfidence = totalConfidence / (len(img_paths) * 100)
 
     # marking overall attendance based on identified safety gear status
     attendance_flag = False
