@@ -272,7 +272,7 @@ def upload():
     if helmet_flag:
         worker_result.append('has helmet')
         print('has helmet')
-    # # if no helmet was found with 80% or more confidence        
+    # # if no helmet was found with 75% or more confidence        
     if not helmet_flag:
         worker_result.append('does not have helmet')
         print('does not have helmet')
@@ -315,7 +315,7 @@ def upload():
         mask_flag = False
 
     print("All model Confidence for PPE: ", allModelConfidencePPE)
-    # if no PPE Kit was found with 80% or more confidence    
+    # if no PPE Kit was found with 75% or more confidence    
     if ppe_flag:
         worker_result.append('has PPE kit')
         print('has PPE kit')    
@@ -324,7 +324,7 @@ def upload():
         print('does not have PPE Kit')
 
     print("All model Confidence for Face Mask: ", allModelConfidenceMask)
-    # if no PPE Kit was found with 80% or more confidence    
+    # if no PPE Kit was found with 75% or more confidence    
     if mask_flag:
         worker_result.append('has face mask')
         print('has face mask')    
