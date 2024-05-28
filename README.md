@@ -1,10 +1,10 @@
 # Efficient Framework for Construction Workers Safety using AI Techniques
-Project built as part of the final year Capstone Project
+Project built as part of the final year Capstone Project.
      
 ## Modules
 - Deep Learning Model for Helmet Detection
-     - TTACT formula - image
-     - Overlap module for detection of correct wearing of helmet - video feed
+     - TTACT formula - image - apply image transformations to improve the performance of object detection model in possible conditions such as low lighting, poor input device etc
+     - Overlap module for detection of correct wearing of helmet - video feed - affine invariant approach for helmet detection, which does not require manual annotation work to be done to prepare dataset.
 - LLM based RAG pipeline - query system to interact with worker logs using Natural Language queries
 
 ## Architecture Diagram
