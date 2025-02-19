@@ -1,7 +1,7 @@
 # Efficient Framework for Construction Workers Safety using AI Techniques
 A Full Stack application for the enforcement of safety protocols in a construction site using AI techniques. The application consists of Object Detection using Computer Vision, RAG pipeline for efficient querying of worker logs and a novel method of detection of detection of correct wearing of hardhats in a construction site.
 
-[Publication](10.1109/ACCESS.2025.3527511)
+[Publication](https://ieeexplore.ieee.org/document/10835085)
      
 ## Modules
 - Deep Learning Model for Helmet Detection
